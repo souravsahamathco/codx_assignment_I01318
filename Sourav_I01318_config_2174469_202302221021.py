@@ -48,7 +48,7 @@ def read_dataset():
         dframe['color'][70:]='red'
         return dframe
     except Exception as error_msg:
-        logger.info(f"Exception occured while reading the dataset"
+        logger.info(f"Exception while reading the dataset"
                     f"Error Info is  {error_msg}")
 def getGraph(dframe, filters):
     logger.info(
@@ -63,7 +63,7 @@ def getGraph(dframe, filters):
     fig = px.scatter(dframe, x='sepal length (cm)', y='sepal width (cm)', color='color')
     # fig.show()
     logger.info(
-        "Successfully prepared scatter plot json to plot iris dataset")
+        "prepared scatter plot json to plot iris dataset")
     return io.to_json(fig)
 #selected_filters = {"color": 'yellow'}
 dframe = read_dataset()
@@ -95,17 +95,6 @@ def getLogger():
     logger.setLevel(logging.DEBUG)
     return logger
 logger = getLogger()
-def read_dataset():
-    # Read dataset from the sklearn
-    logger.info("Read dataset file from sklearn")
-    try:
-        dframe = load_iris(as_frame=True).data
-        dframe['color']='yellow'
-        dframe['color'][60:]='red'
-        return dframe
-    except Exception as error_msg:
-        logger.info(f"Exception occured while reading the dataset"
-                    f"Error Info is  {error_msg}")
 def read_database_data(sql_query):
     APPLICATION_DB_HOST = "trainingserverbatch3.postgres.database.azure.com"
     APPLICATION_DB_NAME = "Training_S3_DB"
@@ -135,7 +124,7 @@ def get_filter_table(dframe, selected_filters):
             if selected_filters[item] != 'All':
                 select_df = select_df[select_df[item]
                                       == selected_filters[item]]
-    logger.info("Successfully applied screen filters on the grid table dframe.")
+    logger.info("applied screen filters on the grid dframe.")
     return select_df            
 def generate_dynamic_table(dframe, name='Sales', grid_options={"tableSize": "small", "tableMaxHeight": "80vh", "quickSearch":True}, group_headers=[], grid="auto"):
     logger.info("Generate dynamic Grid table json from dframe")
@@ -154,10 +143,9 @@ def generate_dynamic_table(dframe, name='Sales', grid_options={"tableSize": "sma
     table_props["coldef"] = col_def_list
     table_props["gridOptions"] = grid_options
     table_dict.update({"tableprops": table_props})
-    logger.info("Successfully generated dynamic Grid table json from dframe")
+    logger.info("generated dynamic Grid table json from dframe")
     return table_dict
 def build_grid_table_json():
-    logger.info("Preparing grid table json for Product Returns Screen")
     form_config = {}
     sql_query = 'select * from i1318_iris'
     dframe = read_database_data(sql_query)
@@ -182,11 +170,6 @@ import json
 from itertools import chain
 from sqlalchemy import create_engine
 
-APPLICATION_DB_HOST = "trainingserverbatch3.postgres.database.azure.com"
-APPLICATION_DB_NAME = "Training_S3_DB"
-APPLICATION_DB_USER = "Trainingadmin"
-APPLICATION_DB_PASSWORD = "p%40ssw0rd"
-
 def getLogger():
     import logging
     logging.basicConfig(filename="UIACLogger.log",
@@ -200,16 +183,20 @@ def getLogger():
 logger = getLogger()
 
 
-def read_database_data(sql_query, filename):
-    logger.info(f"Read dataset file: {filename}")
+def read_database_data(sql_query):
+    APPLICATION_DB_HOST = "trainingserverbatch3.postgres.database.azure.com"
+    APPLICATION_DB_NAME = "Training_S3_DB"
+    APPLICATION_DB_USER = "Trainingadmin"
+    APPLICATION_DB_PASSWORD = "p%40ssw0rd"
     try:
         connection_uri = f"postgresql://{APPLICATION_DB_USER}:{APPLICATION_DB_PASSWORD}@{APPLICATION_DB_HOST}/{APPLICATION_DB_NAME}"
         engine = create_engine(connection_uri)
         connection = engine.connect()
-        dframe = pd.read_sql_query(sql_query, con=connection)
+        dframe = pd.read_sql_query(sql_query,con=connection)
         return dframe
-    except Exception as error_msg:
-        print(f"Error occured while reading data from database using query {query} and error info: {error_msg}")
+    except Exception as error:
+        print(f"Error occured while reading data from database"
+                f"using query {sql_query} and error info: {error}")
     finally:
         if connection is not None:
             connection.close()
@@ -305,9 +292,8 @@ def get_response_filters(current_filter_params, df, default_values_selected, all
 def prepare_filter_json():
     logger.info(f"Preparing json for Filters in Iris Grid Table")
     # Prepare Filter json for Target in the Iris Grid Table.
-    filename = "I1318_iris"
-    sql_query = f"select * from {filename}"    
-    dframe = read_database_data(sql_query, filename)
+    sql_query = "select * from I1318_iris"    
+    dframe = read_database_data(sql_query)
     dframe = dframe.groupby(['target']).sum().reset_index()
     filter_dframe = dframe[['target']]
     default_values_selected = {'target': 'setosa'}
@@ -349,7 +335,7 @@ def getLogger():
     logger.setLevel(logging.DEBUG)
     return logger
 logger = getLogger()
-def plotMathematicalGraph():
+def getGraph():
     x = np.arange(20)
     fig = go.Figure(data=go.Scatter(x=x, y=x**2))
     # fig.show()
@@ -360,13 +346,105 @@ def plotMathematicalGraph():
 
 selected_filters = {"target": 'versicolor'}
 
-dynamic_outputs = plotMathematicalGraph()
+dynamic_outputs = getGraph()
 
 """
 #END CUSTOM CODE
 
 
+# ## Question 5
+
+# 5.Create a screen name Multi Trace, use dataset of your choice and plot any 5 traces/plots (box, scatter, violin ….). use dropdown to navigate between traces/plot.
+
 # In[6]:
+
+
+#BEGIN CUSTOM CODE BELOW...
+
+
+multiTracePlotUIAC = """
+import plotly.graph_objects as go
+import pandas as pd
+import json
+import plotly.io as io
+from sqlalchemy import create_engine
+
+APPLICATION_DB_HOST = "trainingserverbatch3.postgres.database.azure.com"
+APPLICATION_DB_NAME = "Training_S3_DB"
+APPLICATION_DB_USER = "Trainingadmin"
+APPLICATION_DB_PASSWORD = "p%40ssw0rd"
+
+
+def getLogger():
+    import logging
+    logging.basicConfig(filename="UIACLogger.log",
+                        format='%(asctime)s %(message)s',
+                        filemode='a')
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = getLogger()
+
+
+def read_database_data(sql_query):
+    APPLICATION_DB_HOST = "trainingserverbatch3.postgres.database.azure.com"
+    APPLICATION_DB_NAME = "Training_S3_DB"
+    APPLICATION_DB_USER = "Trainingadmin"
+    APPLICATION_DB_PASSWORD = "p%40ssw0rd"
+    try:
+        connection_uri = f"postgresql://{APPLICATION_DB_USER}:{APPLICATION_DB_PASSWORD}@{APPLICATION_DB_HOST}/{APPLICATION_DB_NAME}"
+        engine = create_engine(connection_uri)
+        connection = engine.connect()
+        dframe = pd.read_sql_query(sql_query,con=connection)
+        return dframe
+    except Exception as error:
+        print(f"Error occured while reading data from database"
+                f"using query {sql_query} and error info: {error}")
+    finally:
+        if connection is not None:
+            connection.close()
+
+def getGraph(dframe, filters):
+    logger.info(
+        "Preparing bar graph json to understand products sales over time")
+    for item in filters:
+        if 'All' in filters[item]:
+            continue
+        elif isinstance(filters[item], list):
+            dframe = dframe[dframe[item].isin(filters[item])]
+        else:
+            dframe = dframe[dframe[item] == filters[item]]
+    
+    
+    fig = go.Figure(data=[go.Scatter(
+     x=dframe['sepal width (cm)'],
+     y=dframe['sepal length (cm)'],
+     mode='markers',
+     marker=dict(
+         color='lightskyblue',
+     ))])
+
+    # fig.show()
+    
+    logger.info(
+        "Successfully prepared bar graph json to understand products sales over time")
+    return io.to_json(fig)
+
+
+# selected_filters = {"target": 'versicolor'}
+
+
+sql_query = "select * from I1318_iris"    
+dframe = read_database_data(sql_query)
+dynamic_outputs = getGraph(dframe, selected_filters)
+
+"""
+#END CUSTOM CODE
+
+
+# In[7]:
 
 
 
@@ -377,7 +455,8 @@ dynamic_outputs = plotMathematicalGraph()
 dynamic_result = {
     'Plot': scatterPlotUIAC,
     'Filter table': gridTableIrisUIAC,
-    'Graph': graphUIAC,}
+    'Graph': graphUIAC,
+    'Multi trace': multiTracePlotUIAC,}
 dynamic_filter = {
     'targetFilter': targetFilterUIAC,
 }
@@ -392,7 +471,7 @@ results_json.append({
 
 # ### Please save and checkpoint notebook before submitting params
 
-# In[7]:
+# In[8]:
 
 
 
@@ -401,7 +480,7 @@ currentNotebook = 'Sourav_I01318_config_2174469_202302221021.ipynb'
 get_ipython().system('jupyter nbconvert --to script {currentNotebook} ')
 
 
-# In[8]:
+# In[9]:
 
 
 
